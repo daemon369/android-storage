@@ -19,3 +19,5 @@ allprojects {
         mavenCentral()
     }
 }
+
+apply(from="$rootDir/gradle/publish-root.gradle.kts")
