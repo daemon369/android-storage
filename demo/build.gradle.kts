@@ -35,12 +35,13 @@ android {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${rootProject.ext["kotlin_version"]}")
-    implementation("androidx.appcompat:appcompat:1.4.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.2")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    implementation(libs.kotlin)
+    implementation(libs.x.appcompat)
+    implementation(libs.x.constraintlayout)
 
     implementation(project(":storage"))
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.x.junit)
+    androidTestImplementation(libs.x.espresso)
 }

@@ -33,9 +33,10 @@ android {
 }
 
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.4.0")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${rootProject.ext["kotlin_version"]}")
+    implementation(libs.kotlin)
+    implementation(libs.x.appcompat)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.x.junit)
+    androidTestImplementation(libs.x.espresso)
 }
