@@ -25,7 +25,9 @@ fun Context.saveImageFile(
     name: String,
     data: ByteArray,
     width: Int,
-    height: Int
+    height: Int,
+    latitude: Double? = null,
+    longitude: Double? = null,
 ): Uri? {
     log.d("saveImageFile: $name, ${data.size}, $width, $height")
     val resolver = contentResolver
@@ -36,10 +38,13 @@ fun Context.saveImageFile(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         }
     val detail = ContentValues().apply {
-        put(
-            MediaStore.Images.Media.DISPLAY_NAME,
-            name
-        )
+        put(MediaStore.Images.Media.DISPLAY_NAME, name)
+        if (latitude != null) {
+            put(MediaStore.Images.Media.LATITUDE, latitude)
+        }
+        if (longitude != null) {
+            put(MediaStore.Images.Media.LONGITUDE, longitude)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
@@ -68,10 +73,10 @@ fun Context.saveImageFile(
 fun Context.saveAudioFile(
     name: String,
     data: ByteArray,
-    width: Int,
-    height: Int
+    latitude: Double? = null,
+    longitude: Double? = null,
 ): Uri? {
-    log.d("saveAudioFile: $name, ${data.size}, $width, $height")
+    log.d("saveAudioFile: $name, ${data.size}")
     val resolver = contentResolver
     val collection =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -80,10 +85,13 @@ fun Context.saveAudioFile(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         }
     val detail = ContentValues().apply {
-        put(
-            MediaStore.Audio.Media.DISPLAY_NAME,
-            name
-        )
+        put(MediaStore.Audio.Media.DISPLAY_NAME, name)
+        if (latitude != null) {
+            put(MediaStore.Images.Media.LATITUDE, latitude)
+        }
+        if (longitude != null) {
+            put(MediaStore.Images.Media.LONGITUDE, longitude)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             put(MediaStore.Audio.Media.IS_PENDING, 1)
         }
@@ -113,7 +121,9 @@ fun Context.saveVideoFile(
     name: String,
     data: ByteArray,
     width: Int,
-    height: Int
+    height: Int,
+    latitude: Double? = null,
+    longitude: Double? = null,
 ): Uri? {
     log.d("saveVideoFile: $name, ${data.size}, $width, $height")
     val resolver = contentResolver
@@ -124,10 +134,13 @@ fun Context.saveVideoFile(
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         }
     val detail = ContentValues().apply {
-        put(
-            MediaStore.Video.Media.DISPLAY_NAME,
-            name
-        )
+        put(MediaStore.Video.Media.DISPLAY_NAME, name)
+        if (latitude != null) {
+            put(MediaStore.Images.Media.LATITUDE, latitude)
+        }
+        if (longitude != null) {
+            put(MediaStore.Images.Media.LONGITUDE, longitude)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             put(MediaStore.Video.Media.IS_PENDING, 1)
         }
