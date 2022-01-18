@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.kotlin)
     implementation(libs.x.appcompat)
 
+    implementation(libs.daemon.logger)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.x.junit)
     androidTestImplementation(libs.x.espresso.core)
