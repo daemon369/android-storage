@@ -10,7 +10,7 @@ import java.io.FileOutputStream
 
 private val log = getLogger(null)
 
-fun Context.saveImageFile(
+fun Context.saveImageToMediaStore(
     name: String,
     data: ByteArray,
     width: Int,
@@ -18,7 +18,7 @@ fun Context.saveImageFile(
     latitude: Double? = null,
     longitude: Double? = null,
 ): Uri? {
-    log.d("saveImageFile: $name, ${data.size}, $width, $height")
+    log.d("saveImageToMediaStore: $name, ${data.size}, $width, $height")
     val resolver = contentResolver
     val collection =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -40,12 +40,12 @@ fun Context.saveImageFile(
     }
     val contentUri = resolver.insert(collection, detail)
     if (contentUri == null) {
-        log.e("saveImageFile contentUri is null")
+        log.e("saveImageToMediaStore contentUri is null")
         return null
     }
     val descriptor = resolver.openFileDescriptor(contentUri, "w", null)
     if (descriptor == null) {
-        log.e("saveImageFile openFileDescriptor failed")
+        log.e("saveImageToMediaStore openFileDescriptor failed")
         return null
     }
     descriptor.use { pfd ->
@@ -59,13 +59,13 @@ fun Context.saveImageFile(
     return contentUri
 }
 
-fun Context.saveAudioFile(
+fun Context.saveAudioToMediaStore(
     name: String,
     data: ByteArray,
     latitude: Double? = null,
     longitude: Double? = null,
 ): Uri? {
-    log.d("saveAudioFile: $name, ${data.size}")
+    log.d("saveAudioToMediaStore: $name, ${data.size}")
     val resolver = contentResolver
     val collection =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -87,12 +87,12 @@ fun Context.saveAudioFile(
     }
     val contentUri = resolver.insert(collection, detail)
     if (contentUri == null) {
-        log.e("saveAudioFile contentUri is null")
+        log.e("saveAudioToMediaStore contentUri is null")
         return null
     }
     val descriptor = resolver.openFileDescriptor(contentUri, "w", null)
     if (descriptor == null) {
-        log.e("saveAudioFile openFileDescriptor failed")
+        log.e("saveAudioToMediaStore openFileDescriptor failed")
         return null
     }
     descriptor.use { pfd ->
@@ -106,7 +106,7 @@ fun Context.saveAudioFile(
     return contentUri
 }
 
-fun Context.saveVideoFile(
+fun Context.saveVideoToMediaStore(
     name: String,
     data: ByteArray,
     width: Int,
@@ -114,7 +114,7 @@ fun Context.saveVideoFile(
     latitude: Double? = null,
     longitude: Double? = null,
 ): Uri? {
-    log.d("saveVideoFile: $name, ${data.size}, $width, $height")
+    log.d("saveVideoToMediaStore: $name, ${data.size}, $width, $height")
     val resolver = contentResolver
     val collection =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -136,12 +136,12 @@ fun Context.saveVideoFile(
     }
     val contentUri = resolver.insert(collection, detail)
     if (contentUri == null) {
-        log.e("saveVideoFile contentUri is null")
+        log.e("saveVideoToMediaStore contentUri is null")
         return null
     }
     val descriptor = resolver.openFileDescriptor(contentUri, "w", null)
     if (descriptor == null) {
-        log.e("saveVideoFile openFileDescriptor failed")
+        log.e("saveVideoToMediaStore openFileDescriptor failed")
         return null
     }
     descriptor.use { pfd ->
