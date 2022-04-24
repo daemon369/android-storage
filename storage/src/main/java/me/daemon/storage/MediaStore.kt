@@ -15,6 +15,7 @@ fun Context.saveImageToMediaStore(
     data: ByteArray,
     width: Int,
     height: Int,
+    mimeType: String? = null,
     latitude: Double? = null,
     longitude: Double? = null,
 ): Uri? {
@@ -28,12 +29,9 @@ fun Context.saveImageToMediaStore(
         }
     val detail = ContentValues().apply {
         put(MediaStore.Images.Media.DISPLAY_NAME, name)
-        if (latitude != null) {
-            put(MediaStore.Images.Media.LATITUDE, latitude)
-        }
-        if (longitude != null) {
-            put(MediaStore.Images.Media.LONGITUDE, longitude)
-        }
+        mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
+        latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
+        longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
