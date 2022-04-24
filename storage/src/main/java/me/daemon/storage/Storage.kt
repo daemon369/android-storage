@@ -8,7 +8,7 @@ import me.daemon.logger.getLogger
 import java.io.File
 
 
-private val log = getLogger(null)
+private val log = getLogger()
 
 val isExternalStorageWritable: Boolean
     get() = Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
