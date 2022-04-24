@@ -3,8 +3,6 @@ include(":demo")
 include(":storage")
 
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
