@@ -5,10 +5,14 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import androidx.annotation.IntDef
 import me.daemon.logger.getLogger
 import java.io.FileOutputStream
 
-private val log = getLogger(null)
+private val log = getLogger()
+
+@IntDef(value = [0, 90, 180, 270])
+annotation class Orientation
 
 fun Context.saveImageToMediaStore(
     name: String,
@@ -16,6 +20,7 @@ fun Context.saveImageToMediaStore(
     width: Int,
     height: Int,
     mimeType: String? = null,
+    @Orientation orientation: Int = 0,
     latitude: Double? = null,
     longitude: Double? = null,
 ): Uri? {
@@ -30,6 +35,7 @@ fun Context.saveImageToMediaStore(
     val detail = ContentValues().apply {
         put(MediaStore.Images.Media.DISPLAY_NAME, name)
         mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
+        put(MediaStore.Images.Media.ORIENTATION, orientation)
         latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
         longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
