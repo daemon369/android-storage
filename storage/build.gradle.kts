@@ -5,7 +5,7 @@ plugins {
 
 ext {
     set("artifactId", "android-storage")
-    set("artifactVersion", "0.2.0")
+    set("artifactVersion", "0.2.1")
 
     set(
         "pom",
