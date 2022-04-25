@@ -60,8 +60,8 @@ dependencies {
     implementation(libs.kotlin)
     implementation(libs.x.appcompat)
 
-//    implementation(libs.daemon.logger)
-    implementation("io.github.daemon369:android-logger:1.0.0")
+    implementation(libs.daemon.logger)
+//    implementation("io.github.daemon369:android-logger:1.0.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.x.junit)
