@@ -82,12 +82,10 @@ fun Context.saveImageToMediaStore(
     )
 
 fun Context.saveAudioToMediaStore(
-    name: String,
     data: ByteArray,
-    latitude: Double? = null,
-    longitude: Double? = null,
+    metadata: AudioMetadata
 ): Uri? {
-    log.d("saveAudioToMediaStore: $name, ${data.size}")
+    log.d("saveAudioToMediaStore: ${metadata.name}, ${data.size}")
     val resolver = contentResolver
     val collection =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -96,12 +94,12 @@ fun Context.saveAudioToMediaStore(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         }
     val detail = ContentValues().apply {
-        put(MediaStore.Audio.Media.DISPLAY_NAME, name)
-        if (latitude != null) {
-            put(MediaStore.Images.Media.LATITUDE, latitude)
+        put(MediaStore.Audio.Media.DISPLAY_NAME, metadata.name)
+        if (metadata.latitude != null) {
+            put(MediaStore.Images.Media.LATITUDE, metadata.latitude)
         }
-        if (longitude != null) {
-            put(MediaStore.Images.Media.LONGITUDE, longitude)
+        if (metadata.longitude != null) {
+            put(MediaStore.Images.Media.LONGITUDE, metadata.longitude)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             put(MediaStore.Audio.Media.IS_PENDING, 1)

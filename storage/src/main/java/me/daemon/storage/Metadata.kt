@@ -7,7 +7,7 @@ open class Metadata(
     val longitude: Double? = null,
 ) {
     @Suppress("UNCHECKED_CAST")
-    abstract class Builder<T : Builder<T>> {
+    abstract class Builder<T : Builder<T, M>, M : Metadata> {
         protected var name: String? = null
         protected var mimeType: String? = null
         protected var latitude: Double? = null
@@ -33,7 +33,7 @@ open class Metadata(
             return this as T
         }
 
-        abstract fun build(): Metadata
+        abstract fun build(): M
     }
 
 }
@@ -53,7 +53,7 @@ class ImageMetaData(
         fun builder(): ImageBuilder = ImageBuilder()
     }
 
-    class ImageBuilder : Builder<ImageBuilder>() {
+    class ImageBuilder : Builder<ImageBuilder, ImageMetaData>() {
         private var width: Int = 0
         private var height: Int = 0
 
@@ -64,8 +64,8 @@ class ImageMetaData(
         fun height(height: Int) = apply { this.height = height }
         fun orientation(@Orientation orientation: Int) = apply { this.orientation = orientation }
 
-        override fun build(): ImageMetaData {
-            return ImageMetaData(
+        override fun build(): ImageMetaData =
+            ImageMetaData(
                 name ?: throw IllegalArgumentException("name is empty"),
                 mimeType,
                 latitude,
@@ -74,6 +74,24 @@ class ImageMetaData(
                 height,
                 orientation
             )
-        }
+    }
+}
+
+class AudioMetadata(
+    name: String,
+    mimeType: String? = null,
+    latitude: Double? = null,
+    longitude: Double? = null
+) : Metadata(name, mimeType, latitude, longitude) {
+
+    class AudioBuilder : Builder<AudioBuilder, AudioMetadata>() {
+
+        override fun build(): AudioMetadata =
+            AudioMetadata(
+                name ?: throw IllegalArgumentException("name is empty"),
+                mimeType,
+                latitude,
+                longitude,
+            )
     }
 }
