@@ -15,16 +15,13 @@ private val log = getLogger()
 annotation class Orientation
 
 fun Context.saveImageToMediaStore(
-    name: String,
     data: ByteArray,
+    metadata: Metadata,
     width: Int,
     height: Int,
-    mimeType: String? = null,
     @Orientation orientation: Int = 0,
-    latitude: Double? = null,
-    longitude: Double? = null,
 ): Uri? {
-    log.d("saveImageToMediaStore: $name, ${data.size}, $width, $height")
+    log.d("saveImageToMediaStore: ${metadata.name}, ${data.size}, $width, $height")
     val resolver = contentResolver
     val collection =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -33,11 +30,11 @@ fun Context.saveImageToMediaStore(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         }
     val detail = ContentValues().apply {
-        put(MediaStore.Images.Media.DISPLAY_NAME, name)
-        mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
+        put(MediaStore.Images.Media.DISPLAY_NAME, metadata.name)
+        metadata.mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
         put(MediaStore.Images.Media.ORIENTATION, orientation)
-        latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
-        longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
+        metadata.latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
+        metadata.longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
@@ -62,6 +59,30 @@ fun Context.saveImageToMediaStore(
     }
     return contentUri
 }
+
+fun Context.saveImageToMediaStore(
+    name: String,
+    data: ByteArray,
+    width: Int,
+    height: Int,
+    mimeType: String? = null,
+    @Orientation orientation: Int = 0,
+    latitude: Double? = null,
+    longitude: Double? = null,
+): Uri? =
+    saveImageToMediaStore(
+        data,
+        Metadata
+            .builder()
+            .name(name)
+            .mimeType(mimeType)
+            .latitude(latitude)
+            .longitude(longitude)
+            .build(),
+        width,
+        height,
+        orientation
+    )
 
 fun Context.saveAudioToMediaStore(
     name: String,
