@@ -16,12 +16,9 @@ annotation class Orientation
 
 fun Context.saveImageToMediaStore(
     data: ByteArray,
-    metadata: Metadata,
-    width: Int,
-    height: Int,
-    @Orientation orientation: Int = 0,
+    metadata: ImageMetaData,
 ): Uri? {
-    log.d("saveImageToMediaStore: ${metadata.name}, ${data.size}, $width, $height")
+    log.d("saveImageToMediaStore: ${metadata.name}, ${data.size}, ${metadata.width}, ${metadata.height}")
     val resolver = contentResolver
     val collection =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -32,7 +29,7 @@ fun Context.saveImageToMediaStore(
     val detail = ContentValues().apply {
         put(MediaStore.Images.Media.DISPLAY_NAME, metadata.name)
         metadata.mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
-        put(MediaStore.Images.Media.ORIENTATION, orientation)
+        put(MediaStore.Images.Media.ORIENTATION, metadata.orientation)
         metadata.latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
         metadata.longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -72,16 +69,16 @@ fun Context.saveImageToMediaStore(
 ): Uri? =
     saveImageToMediaStore(
         data,
-        Metadata
+        ImageMetaData
             .builder()
             .name(name)
             .mimeType(mimeType)
             .latitude(latitude)
             .longitude(longitude)
+            .width(width)
+            .height(height)
+            .orientation(orientation)
             .build(),
-        width,
-        height,
-        orientation
     )
 
 fun Context.saveAudioToMediaStore(
