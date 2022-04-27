@@ -1,11 +1,26 @@
 package me.daemon.storage
 
+import android.content.ContentValues
+import android.os.Build
+import android.provider.MediaStore
+
 open class Metadata(
     val name: String,
     val mimeType: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
 ) {
+
+    open fun contentValues() = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+        mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
+        latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
+        longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            put(MediaStore.Images.Media.IS_PENDING, 1)
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     abstract class Builder<T : Builder<T, M>, M : Metadata> {
         protected var name: String? = null
@@ -52,6 +67,11 @@ class ImageMetaData(
         @JvmStatic
         fun builder(): ImageBuilder = ImageBuilder()
     }
+
+    override fun contentValues(): ContentValues =
+        super.contentValues().apply {
+            put(MediaStore.Images.Media.ORIENTATION, orientation)
+        }
 
     class ImageBuilder : Builder<ImageBuilder, ImageMetaData>() {
         private var width: Int = 0

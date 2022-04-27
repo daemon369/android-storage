@@ -26,16 +26,7 @@ fun Context.saveImageToMediaStore(
         } else {
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         }
-    val detail = ContentValues().apply {
-        put(MediaStore.Images.Media.DISPLAY_NAME, metadata.name)
-        metadata.mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
-        put(MediaStore.Images.Media.ORIENTATION, metadata.orientation)
-        metadata.latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
-        metadata.longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            put(MediaStore.Images.Media.IS_PENDING, 1)
-        }
-    }
+    val detail = metadata.contentValues()
     val contentUri = resolver.insert(collection, detail)
     if (contentUri == null) {
         log.e("saveImageToMediaStore contentUri is null")
