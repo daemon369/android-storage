@@ -1,7 +1,6 @@
 package me.daemon.storage
 
 import android.content.ContentValues
-import android.os.Build
 import android.provider.MediaStore
 
 open class Metadata(
@@ -16,9 +15,6 @@ open class Metadata(
         mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
         latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
         longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            put(MediaStore.Images.Media.IS_PENDING, 1)
-        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -103,6 +99,11 @@ class AudioMetadata(
     latitude: Double? = null,
     longitude: Double? = null
 ) : Metadata(name, mimeType, latitude, longitude) {
+
+    companion object {
+        @JvmStatic
+        fun builder(): AudioBuilder = AudioBuilder()
+    }
 
     class AudioBuilder : Builder<AudioBuilder, AudioMetadata>() {
 

@@ -1,5 +1,6 @@
 package me.daemon.storage
 
+import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
@@ -14,6 +15,33 @@ private val log = getLogger()
 @IntDef(value = [0, 90, 180, 270])
 annotation class Orientation
 
+private inline fun pending(
+    resolver: ContentResolver,
+    collection: Uri,
+    contentValues: ContentValues,
+    crossinline block: (contentUri: Uri) -> Uri?
+): Uri? {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 1)
+    }
+    var contentUri = resolver.insert(collection, contentValues)
+    if (contentUri == null) {
+        log.e("contentUri is null")
+        return null
+    }
+    contentUri = block(contentUri)
+    if (contentUri == null) {
+        return null
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        contentValues.clear()
+        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+        resolver.update(contentUri, contentValues, null, null)
+    }
+    return contentUri
+}
+
 fun Context.saveImageToMediaStore(
     data: ByteArray,
     metadata: ImageMetaData,
@@ -27,25 +55,21 @@ fun Context.saveImageToMediaStore(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         }
     val detail = metadata.contentValues()
-    val contentUri = resolver.insert(collection, detail)
-    if (contentUri == null) {
-        log.e("saveImageToMediaStore contentUri is null")
-        return null
+    return pending(
+        resolver,
+        collection,
+        detail
+    ) {
+        val descriptor = resolver.openFileDescriptor(it, "w", null)
+        if (descriptor == null) {
+            log.e("saveImageToMediaStore openFileDescriptor failed")
+            return@pending null
+        }
+        descriptor.use { pfd ->
+            FileOutputStream(pfd.fileDescriptor).write(data)
+        }
+        return@pending it
     }
-    val descriptor = resolver.openFileDescriptor(contentUri, "w", null)
-    if (descriptor == null) {
-        log.e("saveImageToMediaStore openFileDescriptor failed")
-        return null
-    }
-    descriptor.use { pfd ->
-        FileOutputStream(pfd.fileDescriptor).write(data)
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        detail.clear()
-        detail.put(MediaStore.Images.Media.IS_PENDING, 0)
-        resolver.update(contentUri, detail, null, null)
-    }
-    return contentUri
 }
 
 fun Context.saveImageToMediaStore(
@@ -84,37 +108,22 @@ fun Context.saveAudioToMediaStore(
         } else {
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         }
-    val detail = ContentValues().apply {
-        put(MediaStore.Audio.Media.DISPLAY_NAME, metadata.name)
-        if (metadata.latitude != null) {
-            put(MediaStore.Images.Media.LATITUDE, metadata.latitude)
+    val detail = metadata.contentValues()
+    return pending(
+        resolver,
+        collection,
+        detail
+    ) {
+        val descriptor = resolver.openFileDescriptor(it, "w", null)
+        if (descriptor == null) {
+            log.e("saveAudioToMediaStore openFileDescriptor failed")
+            return@pending null
         }
-        if (metadata.longitude != null) {
-            put(MediaStore.Images.Media.LONGITUDE, metadata.longitude)
+        descriptor.use { pfd ->
+            FileOutputStream(pfd.fileDescriptor).write(data)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            put(MediaStore.Audio.Media.IS_PENDING, 1)
-        }
+        return@pending it
     }
-    val contentUri = resolver.insert(collection, detail)
-    if (contentUri == null) {
-        log.e("saveAudioToMediaStore contentUri is null")
-        return null
-    }
-    val descriptor = resolver.openFileDescriptor(contentUri, "w", null)
-    if (descriptor == null) {
-        log.e("saveAudioToMediaStore openFileDescriptor failed")
-        return null
-    }
-    descriptor.use { pfd ->
-        FileOutputStream(pfd.fileDescriptor).write(data)
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        detail.clear()
-        detail.put(MediaStore.Audio.Media.IS_PENDING, 0)
-        resolver.update(contentUri, detail, null, null)
-    }
-    return contentUri
 }
 
 fun Context.saveVideoToMediaStore(
