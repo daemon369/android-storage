@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package me.daemon.storage
 
 import android.content.ContentResolver
@@ -127,14 +129,10 @@ fun Context.saveAudioToMediaStore(
 }
 
 fun Context.saveVideoToMediaStore(
-    name: String,
     data: ByteArray,
-    width: Int,
-    height: Int,
-    latitude: Double? = null,
-    longitude: Double? = null,
+    metadata: VideoMetadata,
 ): Uri? {
-    log.d("saveVideoToMediaStore: $name, ${data.size}, $width, $height")
+    log.d("saveVideoToMediaStore: ${metadata.name}, ${data.size}, ${metadata.width}, ${metadata.height}")
     val resolver = contentResolver
     val collection =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -142,35 +140,21 @@ fun Context.saveVideoToMediaStore(
         } else {
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         }
-    val detail = ContentValues().apply {
-        put(MediaStore.Video.Media.DISPLAY_NAME, name)
-        if (latitude != null) {
-            put(MediaStore.Images.Media.LATITUDE, latitude)
+    val detail = metadata.contentValues()
+    return pending(
+        resolver,
+        collection,
+        detail
+    ) {
+        val descriptor = resolver.openFileDescriptor(it, "w", null)
+        if (descriptor == null) {
+            log.e("saveVideoToMediaStore openFileDescriptor failed")
+            return@pending null
         }
-        if (longitude != null) {
-            put(MediaStore.Images.Media.LONGITUDE, longitude)
+        descriptor.use { pfd ->
+            FileOutputStream(pfd.fileDescriptor).write(data)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            put(MediaStore.Video.Media.IS_PENDING, 1)
-        }
+
+        return@pending it
     }
-    val contentUri = resolver.insert(collection, detail)
-    if (contentUri == null) {
-        log.e("saveVideoToMediaStore contentUri is null")
-        return null
-    }
-    val descriptor = resolver.openFileDescriptor(contentUri, "w", null)
-    if (descriptor == null) {
-        log.e("saveVideoToMediaStore openFileDescriptor failed")
-        return null
-    }
-    descriptor.use { pfd ->
-        FileOutputStream(pfd.fileDescriptor).write(data)
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        detail.clear()
-        detail.put(MediaStore.Video.Media.IS_PENDING, 0)
-        resolver.update(contentUri, detail, null, null)
-    }
-    return contentUri
 }
