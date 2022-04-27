@@ -6,23 +6,17 @@ import android.provider.MediaStore
 open class Metadata(
     val name: String,
     val mimeType: String? = null,
-    val latitude: Double? = null,
-    val longitude: Double? = null,
 ) {
 
     open fun contentValues() = ContentValues().apply {
         put(MediaStore.MediaColumns.DISPLAY_NAME, name)
         mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
-        latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
-        longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
     }
 
     @Suppress("UNCHECKED_CAST")
     abstract class Builder<T : Builder<T, M>, M : Metadata> {
         protected var name: String? = null
         protected var mimeType: String? = null
-        protected var latitude: Double? = null
-        protected var longitude: Double? = null
 
         fun name(name: String?): T {
             this.name = name
@@ -31,16 +25,6 @@ open class Metadata(
 
         fun mimeType(mimeType: String?): T {
             this.mimeType = mimeType
-            return this as T
-        }
-
-        fun latitude(latitude: Double?): T {
-            this.latitude = latitude
-            return this as T
-        }
-
-        fun longitude(longitude: Double?): T {
-            this.longitude = longitude
             return this as T
         }
 
@@ -54,10 +38,10 @@ class ImageMetaData(
     val width: Int,
     val height: Int,
     @Orientation val orientation: Int = 0,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     mimeType: String? = null,
-    latitude: Double? = null,
-    longitude: Double? = null,
-) : Metadata(name, mimeType, latitude, longitude) {
+) : Metadata(name, mimeType) {
 
     companion object {
         @JvmStatic
@@ -67,11 +51,15 @@ class ImageMetaData(
     override fun contentValues(): ContentValues =
         super.contentValues().apply {
             put(MediaStore.Images.Media.ORIENTATION, orientation)
+            latitude?.let { put(MediaStore.Images.Media.LATITUDE, it) }
+            longitude?.let { put(MediaStore.Images.Media.LONGITUDE, it) }
         }
 
     class ImageBuilder : Builder<ImageBuilder, ImageMetaData>() {
         private var width: Int = 0
         private var height: Int = 0
+        private var latitude: Double? = null
+        private var longitude: Double? = null
 
         @Orientation
         private var orientation: Int = 0
@@ -79,6 +67,8 @@ class ImageMetaData(
         fun width(width: Int) = apply { this.width = width }
         fun height(height: Int) = apply { this.height = height }
         fun orientation(@Orientation orientation: Int) = apply { this.orientation = orientation }
+        fun latitude(latitude: Double?) = apply { this.latitude = latitude }
+        fun longitude(longitude: Double?) = apply { this.longitude = longitude }
 
         override fun build(): ImageMetaData =
             ImageMetaData(
@@ -86,9 +76,9 @@ class ImageMetaData(
                 width,
                 height,
                 orientation,
-                mimeType,
                 latitude,
                 longitude,
+                mimeType,
             )
     }
 }
@@ -96,9 +86,7 @@ class ImageMetaData(
 class AudioMetadata(
     name: String,
     mimeType: String? = null,
-    latitude: Double? = null,
-    longitude: Double? = null
-) : Metadata(name, mimeType, latitude, longitude) {
+) : Metadata(name, mimeType) {
 
     companion object {
         @JvmStatic
@@ -111,8 +99,6 @@ class AudioMetadata(
             AudioMetadata(
                 name ?: throw IllegalArgumentException("name is empty"),
                 mimeType,
-                latitude,
-                longitude,
             )
     }
 }
@@ -121,31 +107,41 @@ class VideoMetadata(
     name: String,
     val width: Int,
     val height: Int,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     mimeType: String? = null,
-    latitude: Double? = null,
-    longitude: Double? = null,
-) : Metadata(name, mimeType, latitude, longitude) {
+) : Metadata(name, mimeType) {
 
     companion object {
         @JvmStatic
         fun builder(): VideoBuilder = VideoBuilder()
     }
 
+    override fun contentValues(): ContentValues =
+        super.contentValues().apply {
+            latitude?.let { put(MediaStore.Video.Media.LATITUDE, it) }
+            longitude?.let { put(MediaStore.Video.Media.LONGITUDE, it) }
+        }
+
     class VideoBuilder : Metadata.Builder<VideoBuilder, VideoMetadata>() {
         private var width: Int = 0
         private var height: Int = 0
+        private var latitude: Double? = null
+        private var longitude: Double? = null
 
         fun width(width: Int) = apply { this.width = width }
         fun height(height: Int) = apply { this.height = height }
+        fun latitude(latitude: Double?) = apply { this.latitude = latitude }
+        fun longitude(longitude: Double?) = apply { this.longitude = longitude }
 
         override fun build(): VideoMetadata =
             VideoMetadata(
                 name ?: throw IllegalArgumentException("name is empty"),
                 width,
                 height,
-                mimeType,
                 latitude,
                 longitude,
+                mimeType,
             )
     }
 }
