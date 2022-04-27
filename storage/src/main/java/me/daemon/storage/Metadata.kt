@@ -51,12 +51,12 @@ open class Metadata(
 
 class ImageMetaData(
     name: String,
-    mimeType: String? = null,
-    latitude: Double? = null,
-    longitude: Double? = null,
     val width: Int,
     val height: Int,
     @Orientation val orientation: Int = 0,
+    mimeType: String? = null,
+    latitude: Double? = null,
+    longitude: Double? = null,
 ) : Metadata(name, mimeType, latitude, longitude) {
 
     companion object {
@@ -83,12 +83,12 @@ class ImageMetaData(
         override fun build(): ImageMetaData =
             ImageMetaData(
                 name ?: throw IllegalArgumentException("name is empty"),
+                width,
+                height,
+                orientation,
                 mimeType,
                 latitude,
                 longitude,
-                width,
-                height,
-                orientation
             )
     }
 }
@@ -110,6 +110,39 @@ class AudioMetadata(
         override fun build(): AudioMetadata =
             AudioMetadata(
                 name ?: throw IllegalArgumentException("name is empty"),
+                mimeType,
+                latitude,
+                longitude,
+            )
+    }
+}
+
+class VideoMetadata(
+    name: String,
+    val width: Int,
+    val height: Int,
+    mimeType: String? = null,
+    latitude: Double? = null,
+    longitude: Double? = null,
+) : Metadata(name, mimeType, latitude, longitude) {
+
+    companion object {
+        @JvmStatic
+        fun builder(): VideoBuilder = VideoBuilder()
+    }
+
+    class VideoBuilder : Metadata.Builder<VideoBuilder, VideoMetadata>() {
+        private var width: Int = 0
+        private var height: Int = 0
+
+        fun width(width: Int) = apply { this.width = width }
+        fun height(height: Int) = apply { this.height = height }
+
+        override fun build(): VideoMetadata =
+            VideoMetadata(
+                name ?: throw IllegalArgumentException("name is empty"),
+                width,
+                height,
                 mimeType,
                 latitude,
                 longitude,
