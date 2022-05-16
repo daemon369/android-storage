@@ -17,6 +17,22 @@ private val log = getLogger()
 @IntDef(value = [0, 90, 180, 270])
 annotation class Orientation
 
+val imageContentUri: Uri by lazy {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+    } else {
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    }
+}
+
+val videoContentUri: Uri by lazy {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+    } else {
+        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+    }
+}
+
 private inline fun pending(
     resolver: ContentResolver,
     collection: Uri,
@@ -50,16 +66,10 @@ fun Context.saveImageToMediaStore(
 ): Uri? {
     log.d("saveImageToMediaStore: ${metadata.name}, ${data.size}, ${metadata.width}, ${metadata.height}")
     val resolver = contentResolver
-    val collection =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else {
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        }
     val detail = metadata.contentValues()
     return pending(
         resolver,
-        collection,
+        imageContentUri,
         detail
     ) {
         val descriptor = resolver.openFileDescriptor(it, "w", null)
@@ -104,16 +114,10 @@ fun Context.saveAudioToMediaStore(
 ): Uri? {
     log.d("saveAudioToMediaStore: ${metadata.name}, ${data.size}")
     val resolver = contentResolver
-    val collection =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else {
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        }
     val detail = metadata.contentValues()
     return pending(
         resolver,
-        collection,
+        videoContentUri,
         detail
     ) {
         val descriptor = resolver.openFileDescriptor(it, "w", null)
