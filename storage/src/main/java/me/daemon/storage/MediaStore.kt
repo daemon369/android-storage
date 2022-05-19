@@ -7,6 +7,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import androidx.annotation.IntDef
 import me.daemon.logger.getLogger
@@ -22,6 +23,14 @@ val imageContentUri: Uri by lazy {
         MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
     } else {
         MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    }
+}
+
+val audioContentUri: Uri by lazy {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+    } else {
+        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
     }
 }
 
@@ -117,7 +126,7 @@ fun Context.saveAudioToMediaStore(
     val detail = metadata.contentValues()
     return pending(
         resolver,
-        videoContentUri,
+        audioContentUri,
         detail
     ) {
         val descriptor = resolver.openFileDescriptor(it, "w", null)
@@ -135,19 +144,15 @@ fun Context.saveAudioToMediaStore(
 fun Context.saveVideoToMediaStore(
     data: ByteArray,
     metadata: VideoMetadata,
+    block: ContentValues.() -> Unit = {}
 ): Uri? {
     log.d("saveVideoToMediaStore: ${metadata.name}, ${data.size}, ${metadata.width}, ${metadata.height}")
     val resolver = contentResolver
-    val collection =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else {
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        }
     val detail = metadata.contentValues()
+    detail.block()
     return pending(
         resolver,
-        collection,
+        videoContentUri,
         detail
     ) {
         val descriptor = resolver.openFileDescriptor(it, "w", null)
@@ -161,4 +166,28 @@ fun Context.saveVideoToMediaStore(
 
         return@pending it
     }
+}
+
+
+fun Context.startSaveVideo(
+    metadata: VideoMetadata,
+    block: ContentValues.() -> Unit = {},
+): Uri? {
+    val contentValues = metadata.contentValues()
+    contentValues.block()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 1)
+    }
+    return contentResolver.insert(videoContentUri, contentValues)
+}
+
+fun Context.openFileDescriptor(uri: Uri): ParcelFileDescriptor? =
+    contentResolver.openFileDescriptor(uri, "w", null)
+
+fun Context.stopSaveVideo(uri: Uri) {
+    val contentValues = ContentValues()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+    }
+    contentResolver.update(uri, contentValues, null, null)
 }
