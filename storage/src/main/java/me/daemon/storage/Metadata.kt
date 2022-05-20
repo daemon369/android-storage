@@ -5,7 +5,7 @@ package me.daemon.storage
 import android.content.ContentValues
 import android.provider.MediaStore
 
-open class Metadata(
+sealed class Metadata(
     val name: String,
     val mimeType: String? = null,
 ) {

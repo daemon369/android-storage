@@ -19,27 +19,24 @@ private val log = getLogger()
 annotation class Orientation
 
 val imageContentUri: Uri by lazy {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
         MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-    } else {
+    else
         MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-    }
 }
 
 val audioContentUri: Uri by lazy {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
         MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-    } else {
+    else
         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-    }
 }
 
 val videoContentUri: Uri by lazy {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
         MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-    } else {
+    else
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-    }
 }
 
 private inline fun pending(
@@ -56,10 +53,7 @@ private inline fun pending(
         log.e("contentUri is null")
         return null
     }
-    contentUri = block(contentUri)
-    if (contentUri == null) {
-        return null
-    }
+    contentUri = block(contentUri) ?: return null
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         contentValues.clear()
@@ -168,9 +162,11 @@ fun Context.saveVideoToMediaStore(
     }
 }
 
+fun Context.openFileDescriptor(uri: Uri): ParcelFileDescriptor? =
+    contentResolver.openFileDescriptor(uri, "w", null)
 
-fun Context.startSaveVideo(
-    metadata: VideoMetadata,
+fun <T : Metadata> Context.openMedia(
+    metadata: T,
     block: ContentValues.() -> Unit = {},
 ): Uri? {
     val contentValues = metadata.contentValues()
@@ -178,13 +174,34 @@ fun Context.startSaveVideo(
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         contentValues.put(MediaStore.MediaColumns.IS_PENDING, 1)
     }
-    return contentResolver.insert(videoContentUri, contentValues)
+    val contentUri = when (metadata) {
+        is ImageMetaData -> imageContentUri
+        is VideoMetadata -> videoContentUri
+        is AudioMetadata -> audioContentUri
+        else -> throw IllegalStateException("Unsupported metadata: $metadata")
+    }
+    return contentResolver.insert(contentUri, contentValues)
 }
 
-fun Context.openFileDescriptor(uri: Uri): ParcelFileDescriptor? =
-    contentResolver.openFileDescriptor(uri, "w", null)
+fun Context.openImage(
+    metadata: ImageMetaData,
+    block: ContentValues.() -> Unit = {},
+): Uri? =
+    openMedia(metadata, block)
 
-fun Context.stopSaveVideo(uri: Uri) {
+fun Context.openVideo(
+    metadata: VideoMetadata,
+    block: ContentValues.() -> Unit = {},
+): Uri? =
+    openMedia(metadata, block)
+
+fun Context.openAudio(
+    metadata: AudioMetadata,
+    block: ContentValues.() -> Unit = {},
+): Uri? =
+    openMedia(metadata, block)
+
+fun Context.closeMedia(uri: Uri) {
     val contentValues = ContentValues()
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
