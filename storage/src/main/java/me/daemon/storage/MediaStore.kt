@@ -87,30 +87,6 @@ fun Context.saveImageToMediaStore(
     }
 }
 
-fun Context.saveImageToMediaStore(
-    name: String,
-    data: ByteArray,
-    width: Int,
-    height: Int,
-    mimeType: String? = null,
-    @Orientation orientation: Int = 0,
-    latitude: Double? = null,
-    longitude: Double? = null,
-): Uri? =
-    saveImageToMediaStore(
-        data,
-        ImageMetaData
-            .builder()
-            .name(name)
-            .mimeType(mimeType)
-            .latitude(latitude)
-            .longitude(longitude)
-            .width(width)
-            .height(height)
-            .orientation(orientation)
-            .build(),
-    )
-
 fun Context.saveAudioToMediaStore(
     data: ByteArray,
     metadata: AudioMetadata
