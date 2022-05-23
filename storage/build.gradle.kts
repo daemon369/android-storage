@@ -1,35 +1,41 @@
+import me.daemon.gradle.Config
+import me.daemon.gradle.PublishInfo
+import me.daemon.gradle.PublishInfo.Pom
+import me.daemon.gradle.PublishInfo.Pom.Scm
+
 plugins {
     id("com.android.library")
     id("kotlin-android")
+    id("maven-publish")
+    id("signing")
+    id("me.daemon.gradle")
 }
 
-ext {
-    set("artifactId", "android-storage")
-    set("artifactVersion", "0.3.0")
+val artifactGroupId: String by project
+val ossrhUsername: String by project.extra
+val ossrhPassword: String by project.extra
 
-    set(
-        "pom",
-        mapOf(
-            "name" to get("artifactId"),
-            "description" to "Android Storage",
-            "url" to "https://github.com/daemon369/android-storage",
-            "scm" to mapOf(
-                "connection" to "scm:git:git://github.com/daemon369/android-storage.git",
-                "developerConnection" to "scm:git:ssh://github.com/daemon369/android-storage.git",
-                "url" to "https://github.com/daemon369/android-storage/tree/main",
-            )
+val publishInfo = PublishInfo(
+    artifactId = "android-storage",
+    artifactVersion = "0.3.0",
+    pom = Pom(
+        name = "android-storage",
+        description = "Android Storage",
+        url = "https://github.com/daemon369/android-storage",
+        scm = Scm(
+            connection = "scm:git:git://github.com/daemon369/android-storage.git",
+            developerConnection = "scm:git:ssh://github.com/daemon369/android-storage.git",
+            url = "https://github.com/daemon369/android-storage/tree/main",
         )
     )
-}
-
-val artifactId: String by extra
+)
 
 android {
-    compileSdk = 31
+    compileSdk = Config.compileSdkVersion
 
     defaultConfig {
-        minSdk = 19
-        targetSdk = 23
+        minSdk = Config.minSdkVersion
+        targetSdk = Config.targetSdkVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -47,12 +53,26 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        kotlinOptions.freeCompilerArgs =
+            listOf("-module-name", "${artifactGroupId}.${publishInfo.artifactId}")
     }
     kotlinOptions {
         jvmTarget = "1.8"
     }
     buildFeatures {
         buildConfig = false
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+        multipleVariants {
+            withSourcesJar()
+            withJavadocJar()
+            allVariants()
+        }
     }
 }
 
@@ -68,4 +88,60 @@ dependencies {
     androidTestImplementation(libs.x.espresso.core)
 }
 
-apply(from = "$rootDir/gradle/maven-publish.gradle")
+afterEvaluate {
+    publishing {
+
+        publications {
+            repositories {
+                maven {
+                    url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+
+                    credentials {
+                        username = ossrhUsername
+                        password = ossrhPassword
+                    }
+                }
+            }
+
+            create<MavenPublication>("release") {
+                groupId = artifactGroupId
+                artifactId = publishInfo.artifactId
+                version = publishInfo.artifactVersion
+                if (plugins.findPlugin("com.android.library") != null) {
+                    from(components["release"])
+                } else {
+                    from(components["java"])
+                }
+
+                pom {
+                    name.set(publishInfo.pom.name)
+                    description.set(publishInfo.pom.description)
+                    url.set(publishInfo.pom.url)
+                    licenses {
+                        license {
+                            name.set("The Apache Software License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set("daemon")
+                            name.set("Daemon")
+                            email.set("daemon336699@gmail.com")
+                        }
+                    }
+                    scm {
+                        connection.set(publishInfo.pom.scm.connection)
+                        developerConnection.set(publishInfo.pom.scm.developerConnection)
+                        url.set(publishInfo.pom.scm.url)
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+signing {
+    sign(publishing.publications)
+}
