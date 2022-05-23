@@ -1,4 +1,5 @@
 rootProject.name = "android-storage"
+includeBuild("compositeBuild")
 include(":demo")
 include(":storage")
 
