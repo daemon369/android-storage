@@ -20,5 +20,3 @@ allprojects {
         maven { url = uri("https://s01.oss.sonatype.org/content/repositories/releases/") }
     }
 }
-
-apply(from="$rootDir/gradle/publish-root.gradle.kts")
