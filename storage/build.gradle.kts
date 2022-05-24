@@ -78,7 +78,8 @@ android {
 
 dependencies {
     implementation(libs.kotlin)
-    implementation(libs.x.appcompat)
+    implementation(libs.x.annotation)
+//    implementation(libs.x.appcompat)
 
     implementation(libs.daemon.logger)
 //    implementation("io.github.daemon369:android-logger:1.0.0")
