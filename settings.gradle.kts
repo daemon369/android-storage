@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 rootProject.name = "android-storage"
 includeBuild("compositeBuild")
 include(":demo")
