@@ -39,11 +39,11 @@ val videoContentUri: Uri by lazy {
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 }
 
-private var fileContentUri: Uri? = null
+private var fileContentUriInternal: Uri? = null
 
 private val Context.fileContentUri: Uri
     get() {
-        val uri = me.daemon.storage.fileContentUri
+        val uri = fileContentUriInternal
         if (uri != null) return uri
         val volume = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             MediaStore
@@ -56,7 +56,7 @@ private val Context.fileContentUri: Uri
         return MediaStore
             .Files
             .getContentUri(volume)
-            .apply { me.daemon.storage.fileContentUri = this }
+            .apply { fileContentUriInternal = this }
     }
 
 private inline fun pending(
@@ -148,6 +148,33 @@ fun Context.saveVideoToMediaStore(
         val descriptor = resolver.openFileDescriptor(it, "w", null)
         if (descriptor == null) {
             log.e("saveVideoToMediaStore openFileDescriptor failed")
+            return@pending null
+        }
+        descriptor.use { pfd ->
+            FileOutputStream(pfd.fileDescriptor).write(data)
+        }
+
+        return@pending it
+    }
+}
+
+fun Context.saveFileToMediaStore(
+    data: ByteArray,
+    metadata: FileMetadata,
+    block: ContentValues.() -> Unit = {}
+): Uri? {
+    log.d("saveFileToMediaStore: ${metadata.name}, ${data.size}")
+    val resolver = contentResolver
+    val detail = metadata.contentValues()
+    detail.block()
+    return pending(
+        resolver,
+        fileContentUri,
+        detail
+    ) {
+        val descriptor = resolver.openFileDescriptor(it, "w", null)
+        if (descriptor == null) {
+            log.e("saveFileToMediaStore openFileDescriptor failed")
             return@pending null
         }
         descriptor.use { pfd ->
