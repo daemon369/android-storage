@@ -147,3 +147,21 @@ class VideoMetadata(
             )
     }
 }
+
+class FileMetadata(
+    name: String,
+) : Metadata(name, null) {
+
+    companion object {
+        @JvmStatic
+        fun builder(): FileBuilder = FileBuilder()
+    }
+
+    class FileBuilder : Metadata.Builder<FileBuilder, FileMetadata>() {
+
+        override fun build(): FileMetadata =
+            FileMetadata(
+                name ?: throw IllegalArgumentException("name is empty"),
+            )
+    }
+}

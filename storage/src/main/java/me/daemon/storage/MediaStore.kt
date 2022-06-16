@@ -39,6 +39,26 @@ val videoContentUri: Uri by lazy {
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 }
 
+private var fileContentUri: Uri? = null
+
+private val Context.fileContentUri: Uri
+    get() {
+        val uri = me.daemon.storage.fileContentUri
+        if (uri != null) return uri
+        val volume = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore
+                .getExternalVolumeNames(this)
+                .firstOrNull()
+                ?: MediaStore.VOLUME_EXTERNAL_PRIMARY
+        } else {
+            "external"
+        }
+        return MediaStore
+            .Files
+            .getContentUri(volume)
+            .apply { me.daemon.storage.fileContentUri = this }
+    }
+
 private inline fun pending(
     resolver: ContentResolver,
     collection: Uri,
@@ -154,6 +174,7 @@ fun <T : Metadata> Context.openMedia(
         is ImageMetaData -> imageContentUri
         is VideoMetadata -> videoContentUri
         is AudioMetadata -> audioContentUri
+        is FileMetadata -> fileContentUri
         else -> throw IllegalStateException("Unsupported metadata: $metadata")
     }
     return contentResolver.insert(contentUri, contentValues)
@@ -173,6 +194,12 @@ fun Context.openVideo(
 
 fun Context.openAudio(
     metadata: AudioMetadata,
+    block: ContentValues.() -> Unit = {},
+): Uri? =
+    openMedia(metadata, block)
+
+fun Context.openFile(
+    metadata: FileMetadata,
     block: ContentValues.() -> Unit = {},
 ): Uri? =
     openMedia(metadata, block)
